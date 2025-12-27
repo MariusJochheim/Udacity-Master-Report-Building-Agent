@@ -11,9 +11,9 @@ def test_calculator_tool_logs_and_returns_result(logger):
 
     result = calculator.invoke({"expression": "2 + 3 * 4"})
 
-    assert result == "Result: 14"
+    assert result == "14"
     assert logger.logs[-1]["tool_name"] == "calculator"
-    assert "'result': 14" in logger.logs[-1]["output"]
+    assert "'result': '14'" in logger.logs[-1]["output"]
 
 
 def test_calculator_tool_handles_invalid_input(logger):

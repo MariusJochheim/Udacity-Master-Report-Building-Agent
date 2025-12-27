@@ -79,15 +79,18 @@ def create_calculator_tool(logger: ToolLogger):
             if not cleaned:
                 raise ValueError("Empty expression.")
 
-            if not re.fullmatch(r"[0-9+\-*/(). %]*", cleaned):
+            if not re.fullmatch(r"[0-9+\-*/(). %]+", cleaned):
                 raise ValueError("Invalid characters in expression.")
 
             result = eval(cleaned, {"__builtins__": {}}, {})
-            formatted = f"Result: {result}"
+            if not isinstance(result, (int, float)):
+                raise ValueError("Expression must evaluate to a number.")
+
+            formatted = str(result)
             logger.log_tool_use(
                 "calculator",
                 {"expression": expression},
-                {"result": result}
+                {"result": formatted}
             )
             return formatted
         except Exception as e:
