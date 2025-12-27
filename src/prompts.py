@@ -15,18 +15,28 @@ def get_intent_classification_prompt() -> PromptTemplate:
         input_variables=["user_input", "conversation_history"],
         template="""You are an intent classifier for a document processing assistant.
 
-Given the user input and conversation history, classify the user's intent into one of these categories:
+Classify each message into exactly one of the following intents:
 - qa: Questions about documents or records that do not require calculations.
 - summarization: Requests to summarize or extract key points from documents that do not require calculations.
-- calculation: Mathematical operations or numerical computations. Or questions about documents that may require calculations
-- unknown: Cannot determine the intent clearly
+- calculation: Mathematical operations or numerical computations, including document questions that require math.
+- unknown: Use only when the request does not fit or is ambiguous.
+
+Rules:
+- Always return a confidence score between 0 and 1.
+- Provide a short reasoning string citing the key words that led to the decision.
+- Prefer qa vs summarization based on whether the user wants an answer vs a condensed overview.
+- Prefer calculation any time math is required, even if documents are also involved.
+
+Examples:
+- "What is the total on invoice INV-003?" -> intent_type=calculation
+- "Summarize contract CON-001" -> intent_type=summarization
+- "Which invoices mention Acme?" -> intent_type=qa
+- "hi" -> intent_type=unknown
 
 User Input: {user_input}
 
 Recent Conversation History:
 {conversation_history}
-
-Analyze the user's request and classify their intent with a confidence score and brief reasoning.
 """
     )
 
