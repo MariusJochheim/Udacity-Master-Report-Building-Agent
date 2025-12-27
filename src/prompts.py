@@ -75,20 +75,16 @@ Rules:
 """
 
 
-# TODO: Finish the function to return the correct prompt based on intent type
-# Refer to README.md Task 3.1 for details
 def get_chat_prompt_template(intent_type: str) -> ChatPromptTemplate:
     """
     Get the appropriate chat prompt template based on intent.
     """
-    if intent_type == "qa":
-        system_prompt = QA_SYSTEM_PROMPT
-    elif intent_type == "summarization":
-        system_prompt = SUMMARIZATION_SYSTEM_PROMPT
-    elif intent_type == "calculation":
-        system_prompt = CALCULATION_SYSTEM_PROMPT
-    else:
-        system_prompt = QA_SYSTEM_PROMPT  # Default fallback
+    prompt_map = {
+        "qa": QA_SYSTEM_PROMPT,
+        "summarization": SUMMARIZATION_SYSTEM_PROMPT,
+        "calculation": CALCULATION_SYSTEM_PROMPT,
+    }
+    system_prompt = prompt_map.get(intent_type, QA_SYSTEM_PROMPT)
 
     return ChatPromptTemplate.from_messages([
         SystemMessagePromptTemplate.from_template(system_prompt),
