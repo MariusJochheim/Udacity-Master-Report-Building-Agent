@@ -17,10 +17,6 @@ from schemas import (
 from prompts import get_intent_classification_prompt, get_chat_prompt_template, MEMORY_SUMMARY_PROMPT
 
 
-# TODO: The AgentState class is already implemented for you.  Study the
-# structure to understand how state flows through the LangGraph
-# workflow.  See README.md Task 2.1 for detailed explanations of
-# each property.
 class AgentState(TypedDict):
     """
     The agent state object
@@ -45,8 +41,7 @@ class AgentState(TypedDict):
     session_id: Optional[str]
     user_id: Optional[str]
 
-    # TODO: Modify actions_taken to use an operator.add reducer
-    actions_taken: Annotated[List[str]]
+    actions_taken: Annotated[List[str], operator.add]
 
 
 def invoke_react_agent(response_schema: type[BaseModel], messages: List[BaseMessage], llm, tools) -> (
