@@ -66,9 +66,6 @@ Dict[str, Any], List[str]):
     return result, tools_used
 
 
-# TODO: Implement the classify_intent function.
-# This function should classify the user's intent and set the next step in the workflow.
-# Refer to README.md Task 2.2
 def classify_intent(state: AgentState, config: RunnableConfig) -> AgentState:
     """
     Classify user intent and update next_step. Also records that this
@@ -78,17 +75,30 @@ def classify_intent(state: AgentState, config: RunnableConfig) -> AgentState:
     llm = config.get("configurable").get("llm")
     history = state.get("messages", [])
 
-    # TODO Configure the llm chat model for structured output
+    # Flatten message history for the LLM prompt
+    conversation_history = "\n".join(
+        f"{message.type}: {message.content}" for message in history if hasattr(message, "content")
+    ) if history else "No conversation history."
 
-    # TODO Create a formatted prompt with conversation history and user input
+    structured_llm = llm.with_structured_output(UserIntent)
 
-    next_step = "qa"
+    prompt = get_intent_classification_prompt().format(
+        user_input=state.get("user_input", ""),
+        conversation_history=conversation_history,
+    )
 
-    # TODO: Add conditional logic to set next_step based on intent
+    intent = structured_llm.invoke(prompt)
+
+    next_step = {
+        "qa": "qa_agent",
+        "summarization": "summarization_agent",
+        "calculation": "calculation_agent",
+    }.get(intent.intent_type, "qa_agent")
 
     return {
         "actions_taken": ["classify_intent"],
-        # TODO: Update state intent and next_step
+        "intent": intent,
+        "next_step": next_step,
     }
 
 
