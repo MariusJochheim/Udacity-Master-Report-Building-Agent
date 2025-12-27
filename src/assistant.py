@@ -131,19 +131,31 @@ class DocumentAssistant:
         if not self.current_session or not self.current_session.conversation_history:
             return "No previous conversation."
 
-        current_state = self.workflow.get_state(config).values
+        state = self.workflow.get_state(config)
+        if not state:
+            return "No previous conversation."
+        current_state = state.values
 
-        summary = current_state.get("conversation_summary", [])
-        return summary
+        summary = current_state.get("conversation_summary")
+        if isinstance(summary, str) and summary.strip():
+            return summary
+        if summary is not None:
+            return str(summary)
+        return "No previous conversation."
 
     def _get_conversation_history(self, config) -> List[BaseMessage]:
         if not self.current_session or not self.current_session.conversation_history:
             return []
 
-        current_state = self.workflow.get_state(config).values
+        state = self.workflow.get_state(config)
+        if not state:
+            return []
+        current_state = state.values
 
         history = current_state.get("messages", [])
-        return history
+        if isinstance(history, list):
+            return [msg for msg in history if isinstance(msg, BaseMessage)]
+        return []
 
 
     def process_message(self, user_input: str) -> Dict[str, Any]:
@@ -158,13 +170,13 @@ class DocumentAssistant:
                 "tools": self.tools,
             }
         }
+        conversation_summary = self._get_conversation_summary(config)
         initial_state: AgentState = {
-            "messages": [],
+            "messages": self._get_conversation_history(config),
             "user_input": user_input,
             "intent": None,
             "next_step": "classify_intent",
-            "conversation_history": self.current_session.conversation_history,
-            "conversation_summary": self._get_conversation_summary(config),
+            "conversation_summary": conversation_summary,
             "active_documents": self.current_session.document_context,
             "current_response": None,
             "tools_used": [],
@@ -188,6 +200,11 @@ class DocumentAssistant:
                         final_state["active_documents"]
                     ))
                 self._save_session()
+            summary_value = final_state.get("conversation_summary", conversation_summary)
+            if summary_value is None:
+                summary_value = conversation_summary
+            elif not isinstance(summary_value, str):
+                summary_value = str(summary_value)
             return {
                 "success": True,
                 "response": final_state.get("messages")[-1].content if final_state.get("messages") else None,
@@ -195,7 +212,7 @@ class DocumentAssistant:
                 "tools_used": final_state.get("tools_used", []),
                 "sources": final_state.get("active_documents", []),
                 "actions_taken": final_state.get("actions_taken", []),
-                "summary": final_state.get("conversation_summary", [])
+                "summary": summary_value
             }
         except Exception as e:
             return {
