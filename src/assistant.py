@@ -7,7 +7,7 @@ import uuid
 from langchain_core.messages import BaseMessage
 from langchain_openai import ChatOpenAI
 
-from src.schemas import SessionState
+from src.schemas import SessionState, TurnRecord, MessageRecord
 from src.retrieval import SimulatedRetriever
 from src.tools import get_all_tools, ToolLogger
 from src.agent import create_workflow, AgentState
@@ -78,6 +78,39 @@ class DocumentAssistant:
             data = json.load(f)
         return SessionState(**data)
 
+    def _message_to_record(self, message: BaseMessage) -> MessageRecord:
+        """Convert a LangChain message to a JSON-serializable record."""
+        content = getattr(message, "content", None)
+        return {
+            "role": getattr(message, "type", message.__class__.__name__),
+            "content": content,
+            "tool_call_id": getattr(message, "tool_call_id", None)
+        }
+
+    def _build_turn_record(self, final_state: Dict[str, Any], user_input: str) -> TurnRecord:
+        """Create a JSON-safe turn record from the workflow state."""
+        intent = final_state.get("intent")
+        if intent is not None and hasattr(intent, "dict"):
+            intent_data = intent.dict()
+        else:
+            intent_data = intent if isinstance(intent, dict) else None
+
+        messages = [
+            self._message_to_record(message)
+            for message in final_state.get("messages", [])
+            if isinstance(message, BaseMessage)
+        ]
+
+        return {
+            "user_input": user_input,
+            "messages": messages,
+            "intent": intent_data,
+            "active_documents": final_state.get("active_documents", []),
+            "tools_used": final_state.get("tools_used", []),
+            "actions_taken": final_state.get("actions_taken", []),
+            "timestamp": datetime.now().isoformat(),
+        }
+
     def _save_session(self) -> None:
         if self.current_session:
             filepath = os.path.join(
@@ -146,7 +179,8 @@ class DocumentAssistant:
             # Update session with new state
             if final_state.get("messages"):
 
-                self.current_session.conversation_history.append(final_state)
+                turn_record = self._build_turn_record(final_state, user_input)
+                self.current_session.conversation_history.append(turn_record)
                 self.current_session.last_updated = datetime.now()
                 if final_state.get("active_documents"):
                     self.current_session.document_context = list(set(
