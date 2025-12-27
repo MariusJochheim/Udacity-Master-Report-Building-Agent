@@ -3,5 +3,3 @@
 .pytest_cache/
 .vscode/
 __pycache__/
-logs/
-sessions/
