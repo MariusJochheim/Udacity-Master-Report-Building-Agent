@@ -41,6 +41,21 @@ def test_document_search_filters_by_type_and_amount(retriever, logger):
     assert logger.logs[-1]["tool_name"] == "document_search"
 
 
+def test_document_search_all_returns_everything(retriever, logger):
+    search_tool = create_document_search_tool(retriever, logger)
+
+    output = search_tool.invoke({
+        "query": "invoices",
+        "search_type": "all",
+    })
+
+    assert "Found 5 document(s)" in output
+    assert "CON-001" in output
+    assert "CLM-001" in output
+    assert "'results_count': 5" in logger.logs[-1]["output"]
+    assert logger.logs[-1]["tool_name"] == "document_search"
+
+
 def test_document_reader_returns_full_content(retriever, logger):
     reader_tool = create_document_reader_tool(retriever, logger)
 
