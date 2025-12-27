@@ -59,6 +59,19 @@ doc_assistant_project/
 └── README.md             # This file
 ```
 
+## Implementation Details & Usage
+
+- **Structured outputs**: Pydantic schemas (`AnswerResponse`, `UserIntent`, etc.) enforce types and ranges (e.g., confidence 0–1) so the LLM returns validated fields the graph can trust.
+- **State & memory**: The LangGraph workflow (`create_workflow`) uses `InMemorySaver` to persist state per `thread_id`. Each run starts at `classify_intent` and routes to `qa_agent`, `summarization_agent`, or `calculation_agent`, then `update_memory` summarizes context and tracked documents before ending.
+- **Prompting**: `get_intent_classification_prompt` provides clear categories, examples, and confidence guidance; `get_chat_prompt_template` picks the right system prompt for each intent while keeping chat history placeholders.
+- **Tools & logging**: Tools use the `@tool` decorator and validate inputs (calculator restricts math characters). A session-scoped `ToolLogger` writes JSON logs to `logs/session_<SESSION_ID>.json` automatically; session state is persisted under `sessions/`.
+- **End-to-end flow**: `assistant.process_message` injects the LLM, tools, and session `thread_id` into the workflow so prior turns, memory summaries, and document context influence new responses.
+
+### Example conversations
+- **QA**: “Which invoice mentions Acme?” → intent `qa`, runs search/reader tools, returns an answer with sources like `INV-001`.
+- **Summarization**: “Summarize contract CON-001” → intent `summarization`, retrieves the contract and returns key points plus referenced document IDs.
+- **Calculation**: “What is the total across all invoices?” → intent `calculation`, retrieves invoices, uses the calculator tool for the math, and replies with the numeric string result plus cited sources.
+
 
 
 ## Agent Architecture
