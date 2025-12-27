@@ -1,0 +1,68 @@
+[
+  {
+    "timestamp": "2025-12-27T19:18:18.856320",
+    "tool_name": "document_statistics",
+    "input": {},
+    "output": "{'stats': {'total_documents': 5, 'documents_with_amounts': 4, 'total_amount': 466250.0, 'average_amount': 116562.5, 'document_types': {'invoice': 3, 'contract': 1, 'claim': 1}, 'min_amount': 2450.0, 'max_amount': 214500.0}}"
+  },
+  {
+    "timestamp": "2025-12-27T19:18:19.938088",
+    "tool_name": "document_search",
+    "input": {
+      "query": "highest sales volume",
+      "search_type": "amount",
+      "doc_type": null,
+      "min_amount": null,
+      "max_amount": null,
+      "comparison": "over",
+      "amount": 214500.0
+    },
+    "output": "{'results_count': 1}"
+  },
+  {
+    "timestamp": "2025-12-27T19:18:21.060602",
+    "tool_name": "document_reader",
+    "input": {
+      "doc_id": "INV-003"
+    },
+    "output": "{'found': True, 'doc_type': 'invoice'}"
+  },
+  {
+    "timestamp": "2025-12-27T19:19:23.239596",
+    "tool_name": "document_search",
+    "input": {
+      "query": "Premium Support",
+      "search_type": "keyword",
+      "doc_type": null,
+      "min_amount": null,
+      "max_amount": null,
+      "comparison": null,
+      "amount": null
+    },
+    "output": "{'results_count': 3}"
+  },
+  {
+    "timestamp": "2025-12-27T19:19:24.552886",
+    "tool_name": "document_reader",
+    "input": {
+      "doc_id": "INV-003"
+    },
+    "output": "{'found': True, 'doc_type': 'invoice'}"
+  },
+  {
+    "timestamp": "2025-12-27T19:19:24.554094",
+    "tool_name": "document_reader",
+    "input": {
+      "doc_id": "INV-001"
+    },
+    "output": "{'found': True, 'doc_type': 'invoice'}"
+  },
+  {
+    "timestamp": "2025-12-27T19:19:24.554835",
+    "tool_name": "document_reader",
+    "input": {
+      "doc_id": "CON-001"
+    },
+    "output": "{'found': True, 'doc_type': 'contract'}"
+  }
+]
