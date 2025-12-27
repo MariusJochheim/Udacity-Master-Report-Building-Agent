@@ -4,6 +4,7 @@ from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTempla
 from langchain_core.runnables import RunnableConfig
 from pydantic import BaseModel
 from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import create_react_agent, tools_condition, ToolNode
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage, ToolMessage
@@ -207,7 +208,6 @@ def should_continue(state: AgentState) -> str:
     return state.get("next_step", "end")
 
 
-# TODO: Complete the create_workflow function. Refer to README.md Task 2.5
 def create_workflow(llm, tools):
     """
     Creates the LangGraph agents.
@@ -215,24 +215,28 @@ def create_workflow(llm, tools):
     """
     workflow = StateGraph(AgentState)
 
-    # TODO: Add all the nodes to the workflow by calling workflow.add_node(...)
+    workflow.add_node("classify_intent", classify_intent)
+    workflow.add_node("qa_agent", qa_agent)
+    workflow.add_node("summarization_agent", summarization_agent)
+    workflow.add_node("calculation_agent", calculation_agent)
+    workflow.add_node("update_memory", update_memory)
 
     workflow.set_entry_point("classify_intent")
     workflow.add_conditional_edges(
         "classify_intent",
         should_continue,
         {
-            # TODO: Map the intent strings to the correct node names
+            "qa_agent": "qa_agent",
+            "summarization_agent": "summarization_agent",
+            "calculation_agent": "calculation_agent",
             "end": END
         }
     )
 
-    # TODO: For each node add an edge that connects it to the update_memory node
-    # qa_agent -> update_memory
-    # summarization_agent -> update_memory
-    # calculation_agent -> update_memory
+    workflow.add_edge("qa_agent", "update_memory")
+    workflow.add_edge("summarization_agent", "update_memory")
+    workflow.add_edge("calculation_agent", "update_memory")
 
     workflow.add_edge("update_memory", END)
 
-    # TODO Modify the return values below by adding a checkpointer with InMemorySaver
-    return workflow.compile()
+    return workflow.compile(checkpointer=InMemorySaver())
