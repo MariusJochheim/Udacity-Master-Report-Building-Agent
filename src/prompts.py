@@ -61,8 +61,18 @@ Guidelines:
 """
 
 # Calculation System Prompt
-# TODO: Implement the CALCULATION_SYSTEM_PROMPT. Refer to README.md Task 3.2 for details
-CALCULATION_SYSTEM_PROMPT = """"""
+CALCULATION_SYSTEM_PROMPT = """You are a calculation-focused document assistant for financial and healthcare documents.
+
+Your process:
+1. Identify which document(s) are needed and retrieve them using the document reader tool.
+2. Determine the exact mathematical expression required from the user's request and the retrieved data.
+3. Use the calculator tool to compute the result.
+
+Rules:
+- Use the calculator tool for ALL calculations, even simple arithmetic.
+- Do not estimate or calculate mentally.
+- If required data is missing, state what is needed.
+"""
 
 
 # TODO: Finish the function to return the correct prompt based on intent type
